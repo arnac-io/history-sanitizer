@@ -18,6 +18,8 @@ var (
 	dryRun      bool
 	verbose     bool
 	inPlace     bool
+	// Version will be set by the main package at build time
+	Version = "dev"
 )
 
 var rootCmd = &cobra.Command{
