@@ -18,7 +18,7 @@ This document explains how `history-sanitizer` uses detection patterns from Gitl
 ```
 history-sanitizer
 ├── Pattern Source: Gitleaks project (MIT License)
-├── Active Patterns: patterns.toml (30+ rules)
+├── Active Patterns: patterns.toml (36 rules)
 ├── Reference Config: gitleaks.toml (95KB, 200+ rules)
 └── Implementation: TOML-based pattern loading in scanner.go
 ```
@@ -83,7 +83,7 @@ regex = '''(?i)api[_-]?key[_-]?[=:]\s*['"`]?[0-9a-zA-Z\-_]{20,}['"`]?'''
 description = "Generic API Key"
 ```
 
-We've extracted 30+ patterns from Gitleaks that are most relevant for shell history scanning.
+We've extracted 34 patterns from Gitleaks plus 2 custom patterns optimized for shell history scanning, totaling 36 patterns.
 
 ## Customization Options
 
@@ -188,7 +188,7 @@ for _, p := range config.Patterns {
 ```
 
 **Benefits:**
-- ✅ 30+ high-quality patterns from Gitleaks
+- ✅ 36 high-quality patterns (Gitleaks + custom)
 - ✅ Easy to update (edit TOML file)
 - ✅ No recompilation needed for pattern changes
 - ✅ Battle-tested patterns from security community

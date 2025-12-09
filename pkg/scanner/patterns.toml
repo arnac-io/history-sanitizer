@@ -158,6 +158,36 @@ name = "proxy-password-url"
 regex = '''https://[^:]+:[^@]+@[^/\s]+'''
 description = "Proxy URL with Password"
 
+[[patterns]]
+name = "proxy-user-credentials"
+regex = '''--proxy-user\s+[^:\s]+:[^\s]+'''
+description = "Proxy User Credentials (curl --proxy-user)"
+
+[[patterns]]
+name = "curl-user-credentials"
+regex = '''(-u|--user)\s+[^:\s]+:[^\s]+'''
+description = "Curl HTTP Basic Auth Credentials"
+
+[[patterns]]
+name = "authorization-bearer"
+regex = '''(?i)(Authorization:\s*Bearer\s+)[A-Za-z0-9\-_\.=]+'''
+description = "Authorization Bearer Token"
+
+[[patterns]]
+name = "authorization-basic"
+regex = '''(?i)(Authorization:\s*Basic\s+)[A-Za-z0-9+/=]+'''
+description = "Authorization Basic Token"
+
+[[patterns]]
+name = "cli-access-token"
+regex = '''--access-token\s+['"]?[A-Za-z0-9+/=:_-]{50,}['"]?'''
+description = "CLI Access Token Flag"
+
+[[patterns]]
+name = "aws-sso-token"
+regex = '''aoa[A-Za-z0-9+/=:_-]{100,}'''
+description = "AWS SSO Access Token"
+
 # 1Password
 [[patterns]]
 name = "1password-service-token"

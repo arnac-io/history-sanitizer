@@ -117,7 +117,7 @@ The hash suffix (`a1b2c3d4`) is consistent for the same value, helping you ident
 
 ## Exploring Detection Rules
 
-See all 30+ detection rules currently implemented:
+See all 36 detection rules currently implemented:
 
 ```bash
 ./history-sanitizer list-rules

@@ -8,28 +8,36 @@
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Go workspace file
+# Dependency directories (remove the comment below to include it)
+# vendor/
 go.work
 
-# Build output
-history-sanitizer
-history-sanitizer-*
+# Go workspace file
+go.work.sum
 
-# IDE
-.vscode/
+# Env files
+.env
+
+# IDE specific files
 .idea/
+.vscode/
 *.swp
 *.swo
-*~
 
-# OS
+# OS specific files
 .DS_Store
 Thumbs.db
 
-# Test files
-*.sanitized
-test_history*
+# Build artifacts
+dist/
+history-sanitizer
+history-sanitizer-*
 
+# Project specific
+*.backup
+*.sanitized
+*.clean
+coverage.html

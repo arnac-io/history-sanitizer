@@ -30,7 +30,7 @@ All detection patterns are sourced from:
 
 ### Active Patterns
 
-Our active detection patterns (30+) are stored in:
+Our active detection patterns (36) are stored in:
 ```
 pkg/scanner/patterns.toml
 ```
@@ -81,10 +81,12 @@ This gives us:
 
 Currently implemented patterns in `pkg/scanner/patterns.toml` (extracted from Gitleaks):
 
-### AWS (3 patterns)
+### AWS (5 patterns)
 - `aws-access-token` - AWS Access Keys (AKIA, ASIA, AGPA, etc.)
 - `aws-secret-key` - AWS Secret Access Keys
 - `aws-session-token` - AWS Session Tokens
+- `aws-sso-token` - AWS SSO Access Tokens
+- `cli-access-token` - CLI --access-token flags (generic)
 
 ### GitHub (5 patterns)
 - `github-pat` - GitHub Personal Access Tokens (ghp_)
@@ -118,6 +120,12 @@ Currently implemented patterns in `pkg/scanner/patterns.toml` (extracted from Gi
 - `sendgrid-api-key` - SendGrid API Keys
 - `square-access-token` - Square Access Tokens
 
+### HTTP/Curl Authentication (4 patterns)
+- `proxy-user-credentials` - Curl proxy credentials (--proxy-user)
+- `curl-user-credentials` - Curl HTTP basic auth (-u, --user)
+- `authorization-bearer` - Authorization Bearer tokens
+- `authorization-basic` - Authorization Basic tokens
+
 ### Other (7 patterns)
 - `cli-secret-value` - CLI secret value flags
 - `datadog-api-key` - Datadog/Generic 32-char hex keys
@@ -127,7 +135,7 @@ Currently implemented patterns in `pkg/scanner/patterns.toml` (extracted from Gi
 - `env-var-jwt` - Environment variables with JWTs
 - `env-var-secret` - Environment variables with secrets
 
-**Total:** 30+ patterns (extracted from Gitleaks' 200+ rule set)
+**Total:** 36 patterns (extracted from Gitleaks' 200+ rule set, plus custom patterns for shell history)
 
 ## Updating Patterns
 

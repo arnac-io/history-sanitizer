@@ -27,7 +27,7 @@ Shell history files are incredibly useful for daily work, but they can inadverte
 
 ## Detection Patterns
 
-The tool uses detection patterns **sourced from Gitleaks** - a well-maintained, community-driven project. We've extracted and implemented 30+ high-value patterns covering:
+The tool uses detection patterns **sourced from Gitleaks** - a well-maintained, community-driven project. We've extracted and implemented 36 high-value patterns covering:
 
 **Cloud Providers & Services:**
 - AWS (Access Keys, Secret Keys, Session Tokens)

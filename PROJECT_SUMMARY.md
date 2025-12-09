@@ -6,7 +6,7 @@
 
 ## Key Features
 
-✅ **3rd-party Patterns**: Uses 30+ detection patterns extracted from Gitleaks  
+✅ **3rd-party Patterns**: Uses 36 detection patterns (from Gitleaks + custom)  
 ✅ **Safe & Non-destructive**: Creates sanitized copies, preserves originals  
 ✅ **Multiple Output Modes**: Dry-run, verbose, in-place, and sanitize modes  
 ✅ **Easy Installation**: Support for Homebrew tap  
@@ -52,7 +52,7 @@ history-sanitizer/
 ### Dependencies
 
 1. **Detection Patterns**: From Gitleaks Project (https://github.com/gitleaks/gitleaks)
-   - 30+ patterns extracted and implemented from Gitleaks
+   - 36 patterns extracted and implemented (from Gitleaks + custom)
    - Industry-standard secret scanning patterns
    - Active community (15k+ stars)
    - Patterns extracted to `patterns.toml`, not using Gitleaks API
@@ -91,7 +91,7 @@ Output File (sanitized or in-place)
 ## How It Works
 
 1. **Load Patterns**: Loads detection patterns from `patterns.toml` at startup
-2. **Compile Regex**: Compiles 30+ regex patterns for efficient matching
+2. **Compile Regex**: Compiles 36 regex patterns for efficient matching
 3. **Scan Content**: Applies patterns line-by-line to detect secrets
 4. **Identify Findings**: Returns structured findings with line numbers and positions
 5. **Obfuscate Secrets**: Replaces secrets with `[REDACTED_TYPE_hash]` placeholders
@@ -202,7 +202,7 @@ make build-windows          # Windows
 ### ✅ Uses 3rd Party Patterns (Gitleaks)
 - **Requirement Met**: Yes! Uses patterns from Gitleaks project
 - **Why**: Industry-standard, actively maintained by security professionals
-- **Benefit**: 30+ high-quality patterns extracted from Gitleaks' 200+ rule set
+- **Benefit**: 36 high-quality patterns from Gitleaks' 200+ rule set plus custom patterns
 - **Implementation**: Direct regex patterns in `patterns.toml` for simplicity
 
 ### ✅ Well Maintained Source
@@ -227,7 +227,7 @@ make build-windows          # Windows
 
 - ✅ Compiles successfully
 - ✅ All tests pass
-- ✅ Detects 30+ secret patterns (extracted from Gitleaks)
+- ✅ Detects 36 secret patterns (from Gitleaks + custom)
 - ✅ Safely obfuscates sensitive data
 - ✅ Comprehensive documentation (5 markdown files)
 - ✅ Example files included
