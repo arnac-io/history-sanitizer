@@ -1,0 +1,58 @@
+# Sample shell history with sensitive data for testing
+
+ls -la
+cd ~/projects
+git status
+
+# Example with AWS credentials
+export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+# Example with API key
+curl -X POST https://api.example.com/data \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+# Regular commands (safe)
+echo "Hello World"
+npm install
+docker ps
+
+# Example with GitHub token
+git clone https://oauth2:ghp_1234567890abcdefghijklmnopqrstuvwxyz@github.com/user/repo.git
+
+# Example with password in URL
+mysql://admin:P@ssw0rd123@localhost:3306/database
+
+# Example with generic secret
+export SECRET_KEY="super_secret_password_12345"
+export API_KEY="sk-proj-1234567890abcdefghijklmnopqrstuvwxyz"
+
+# More safe commands
+cd /usr/local
+make build
+go test ./...
+
+# SSH with credentials (sensitive)
+ssh user@server.com -p 22
+
+# Database connection string
+mongodb://dbuser:dbpass123@localhost:27017/mydb
+
+# Regular git commands (safe)
+git add .
+git commit -m "Update feature"
+git push origin main
+
+# Slack webhook (sensitive)
+curl -X POST https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX
+
+# More regular commands
+npm run test
+docker-compose up -d
+terraform apply
+
+# Generic token usage
+curl -H "Authorization: token ghp_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890"
+
+echo "Done!"
+

@@ -1,0 +1,177 @@
+# Custom Secret Detection Patterns
+# Sourced from Gitleaks project: https://github.com/gitleaks/gitleaks
+# License: MIT
+#
+# These patterns are extracted from the official Gitleaks configuration
+# and optimized for shell history scanning.
+#
+# To add new patterns:
+# 1. Check gitleaks.toml for the latest patterns
+# 2. Add pattern below following the format
+# 3. Test with: go test ./pkg/scanner/...
+
+title = "History Sanitizer Patterns"
+description = "Secret detection patterns sourced from Gitleaks"
+
+# AWS
+[[patterns]]
+name = "aws-access-token"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+description = "AWS Access Token"
+
+[[patterns]]
+name = "aws-secret-key"
+regex = '''(?i)aws(.{0,20})?['"][0-9a-zA-Z/+=]{40}['"]'''
+description = "AWS Secret Key"
+
+[[patterns]]
+name = "aws-session-token"
+regex = '''(?i)AWS_SESSION_TOKEN[=:]([A-Za-z0-9+/=%]+)'''
+description = "AWS Session Token"
+
+# GitHub
+[[patterns]]
+name = "github-pat"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+description = "GitHub Personal Access Token"
+
+[[patterns]]
+name = "github-oauth"
+regex = '''gho_[0-9a-zA-Z]{36}'''
+description = "GitHub OAuth Token"
+
+[[patterns]]
+name = "github-app-token"
+regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
+description = "GitHub App Token"
+
+[[patterns]]
+name = "github-refresh-token"
+regex = '''ghr_[0-9a-zA-Z]{76}'''
+description = "GitHub Refresh Token"
+
+[[patterns]]
+name = "github-fine-grained-pat"
+regex = '''github_pat_\w{82}'''
+description = "GitHub Fine-Grained Personal Access Token"
+
+# Slack
+[[patterns]]
+name = "slack-token"
+regex = '''xox[baprs]-[0-9]{10,13}-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24,32}'''
+description = "Slack Token"
+
+[[patterns]]
+name = "slack-webhook"
+regex = '''https://hooks\.slack\.com/services/T[a-zA-Z0-9_]+/B[a-zA-Z0-9_]+/[a-zA-Z0-9_]+'''
+description = "Slack Webhook URL"
+
+# Generic Patterns
+[[patterns]]
+name = "generic-api-key"
+regex = '''(?i)api[_-]?key[_-]?[=:]\s*['"`]?[0-9a-zA-Z\-_]{20,}['"`]?'''
+description = "Generic API Key"
+
+[[patterns]]
+name = "generic-secret"
+regex = '''(?i)(secret|password|passwd|pwd)[_-]?[=:]\s*['"`]?[^\s'"`]{8,}['"`]?'''
+description = "Generic Secret/Password"
+
+# Private Keys
+[[patterns]]
+name = "private-key"
+regex = '''-----BEGIN (RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY-----[A-Za-z0-9+/=\s\\n]+-----END (RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY-----'''
+description = "Private Key (Full)"
+
+# JWT
+[[patterns]]
+name = "jwt"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'''
+description = "JSON Web Token"
+
+# Database Connection Strings
+[[patterns]]
+name = "connection-string"
+regex = '''(?i)(mongodb|mysql|postgres|postgresql)://[^\s:@]+:[^\s:@]{3,}@[^\s]+'''
+description = "Database Connection String"
+
+[[patterns]]
+name = "mongodb-password"
+regex = '''(?i)mongodb\+srv://[^:]+:([A-Za-z0-9+/=%]+)@'''
+description = "MongoDB Password in Connection String"
+
+# Cloud Providers
+[[patterns]]
+name = "google-api-key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+description = "Google API Key"
+
+[[patterns]]
+name = "stripe-key"
+regex = '''(sk|pk)_(test|live)_[0-9a-zA-Z]{24,}'''
+description = "Stripe API Key"
+
+[[patterns]]
+name = "heroku-api-key"
+regex = '''[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'''
+description = "Heroku API Key / UUID Pattern"
+
+# Other Services
+[[patterns]]
+name = "twilio-api-key"
+regex = '''SK[0-9a-fA-F]{32}'''
+description = "Twilio API Key"
+
+[[patterns]]
+name = "mailchimp-api-key"
+regex = '''[0-9a-f]{32}-us[0-9]{1,2}'''
+description = "MailChimp API Key"
+
+[[patterns]]
+name = "sendgrid-api-key"
+regex = '''SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}'''
+description = "SendGrid API Key"
+
+[[patterns]]
+name = "square-access-token"
+regex = '''sq0atp-[0-9A-Za-z\-_]{22}'''
+description = "Square Access Token"
+
+# CLI and Config Patterns
+[[patterns]]
+name = "cli-secret-value"
+regex = '''--(?:is-secret\s+)?--value\s+['"]([A-Za-z0-9+/=_\-\.\:]{20,})['"]'''
+description = "CLI Secret Value Flag"
+
+[[patterns]]
+name = "datadog-api-key"
+regex = '''\b[a-f0-9]{32}\b'''
+description = "Datadog/Generic 32-char Hex Key"
+
+[[patterns]]
+name = "pagerduty-token"
+regex = '''\bu\+[A-Za-z0-9_-]{16,}\b'''
+description = "PagerDuty Token"
+
+[[patterns]]
+name = "proxy-password-url"
+regex = '''https://[^:]+:[^@]+@[^/\s]+'''
+description = "Proxy URL with Password"
+
+# 1Password
+[[patterns]]
+name = "1password-service-token"
+regex = '''ops_[A-Za-z0-9+/=]{200,}'''
+description = "1Password Service Account Token"
+
+# Environment Variables
+[[patterns]]
+name = "env-var-jwt"
+regex = '''\b[A-Z_]+=(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)'''
+description = "Environment Variable with JWT"
+
+[[patterns]]
+name = "env-var-secret"
+regex = '''\b[A-Z_]*(TOKEN|KEY|SECRET|PASSWORD)[A-Z_]*=['"`]?([A-Za-z0-9+/=_\-\.]{20,})['"`]?'''
+description = "Environment Variable with Secret"
+
