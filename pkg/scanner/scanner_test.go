@@ -113,6 +113,32 @@ export PASSWORD="secret123456"
 	}
 }
 
+func TestScanContent_LongBase64(t *testing.T) {
+	// Example provided by user that was missed
+	content := `Command: : 1738075152:0;./ssosync -t [REDACTED]:[REDACTED]:R/cwzsoijnA0mDity6cJdvDdeESUa2rQutVbPhVgZHaLSWnZQuZ7bb9HkIwtQbk6Z6MkFu+yXMhhT095u/qM0LPWLjvW2gzFZH85QgVe6QnMZ87VDEtTOuc90Ri7PpIKrlNMjHJvN9eYaLxLPJqW2XPJ57VlA9NC2C2dfP6fyBA3o1B+HCb4dhw=:gOqyoJt9H8RqMS33P91wSobQ4l9cmADJ6s23zW887425V111l0r0eV49cMLlZoL2FwFyD9cr4hacR0hCvf+CsK6mF5xWQY4YUhtKC1wxZJ/B0Qt5KF3GNT5t7nB9Nal47prVjoP3Xku81B6NPN06JiMZAPRaJHhBHGTRPOYMJYP97uhvM8JRl5a/FSyyBOzUoUM+iXT4kQ9knBkiS0BzgDZxXv373lgfoOtcKIdViIGK5n7jCXkCfRIu6GSLd9m4fmgH26N3rVVAIgPTSKjGS5k7kg7w2vB8ju+8u23w1HAT436BWd6a94RGdqfTnVKyeVyLs+o38rtvWR+HPpEB/w== -e ht***o`
+
+	findings, err := ScanContent(content)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	found := false
+	for _, f := range findings {
+		// Should match the new base64 pattern
+		if strings.Contains(f.Type, "base64") {
+			found = true
+			if len(f.Match) < 50 {
+				t.Errorf("matched string too short for long base64 secret: %s", f.Match)
+			}
+			break
+		}
+	}
+
+	if !found {
+		t.Error("did not find expected long base64 secret")
+	}
+}
+
 func TestGetPatternCount(t *testing.T) {
 	count := GetPatternCount()
 	// We've extracted 20+ key patterns from Gitleaks

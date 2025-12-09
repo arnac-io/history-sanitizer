@@ -188,6 +188,11 @@ name = "aws-sso-token"
 regex = '''aoa[A-Za-z0-9+/=:_-]{100,}'''
 description = "AWS SSO Access Token"
 
+[[patterns]]
+name = "long-base64-secret"
+regex = '''\b[A-Za-z0-9+/=]{80,}\b'''
+description = "High entropy base64 string (generic secret)"
+
 # 1Password
 [[patterns]]
 name = "1password-service-token"
