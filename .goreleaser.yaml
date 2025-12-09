@@ -45,7 +45,7 @@ brews:
     repository:
       owner: arnac-io
       name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
     homepage: "https://github.com/arnac-io/history-sanitizer"
     description: "Tool to sanitize shell history content"
     license: "MIT"
