@@ -2,6 +2,15 @@
 
 ## Installation
 
+### Method 1: Homebrew (Recommended)
+
+```bash
+brew tap arnac-io/tap
+brew install history-sanitizer
+```
+
+### Method 2: From Source
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/arnac-io/history-sanitizer.git
@@ -48,6 +57,7 @@ cp ~/.zsh_history ~/.zsh_history.backup
 
 Once you're comfortable with what will be changed:
 
+**Option 1: Create a sanitized copy (safer)**
 ```bash
 # Create sanitized version
 ./history-sanitizer -f ~/.zsh_history
@@ -57,6 +67,14 @@ less ~/.zsh_history.sanitized
 
 # If satisfied, replace original (you already have a backup!)
 mv ~/.zsh_history.sanitized ~/.zsh_history
+```
+
+**Option 2: In-place replacement (automatic backup)**
+```bash
+# Sanitize and replace original (creates .backup automatically)
+./history-sanitizer -f ~/.zsh_history -i
+
+# This creates ~/.zsh_history.backup and updates ~/.zsh_history
 ```
 
 ## Understanding the Output
@@ -99,13 +117,13 @@ The hash suffix (`a1b2c3d4`) is consistent for the same value, helping you ident
 
 ## Exploring Detection Rules
 
-See all 200+ detection rules:
+See all 30+ detection rules currently implemented:
 
 ```bash
 ./history-sanitizer list-rules
 ```
 
-This displays all patterns from Gitleaks that the tool uses for detection.
+This displays all patterns extracted from Gitleaks that the tool actively uses for detection.
 
 ## Common Use Cases
 
@@ -114,8 +132,8 @@ This displays all patterns from Gitleaks that the tool uses for detection.
 Add to your dotfiles or cron:
 
 ```bash
-# Weekly history sanitization
-0 0 * * 0 /path/to/history-sanitizer -f ~/.zsh_history -o ~/.zsh_history.clean && mv ~/.zsh_history.clean ~/.zsh_history
+# Weekly history sanitization (with automatic backup)
+0 0 * * 0 /path/to/history-sanitizer -f ~/.zsh_history -i
 ```
 
 ### CI/CD Integration

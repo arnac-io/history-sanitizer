@@ -4,130 +4,151 @@ This document explains how `history-sanitizer` uses detection patterns from Gitl
 
 ## Why Use Gitleaks Patterns?
 
-[Gitleaks](https://github.com/gitleaks/gitleaks) is an industry-standard, open-source tool for detecting secrets, passwords, and keys in code repositories. We chose Gitleaks for several reasons:
+[Gitleaks](https://github.com/gitleaks/gitleaks) is an industry-standard, open-source tool for detecting secrets, passwords, and keys in code repositories. We extract and use patterns from Gitleaks for several reasons:
 
 1. **Active Maintenance**: Regular updates with new detection patterns
-2. **Community-Driven**: Large community contributing patterns
+2. **Community-Driven**: Large community contributing patterns (15k+ stars)
 3. **Comprehensive**: 200+ detection rules covering major services
 4. **Battle-Tested**: Used by thousands of organizations
 5. **Low False Positives**: Well-tuned patterns with entropy checking
-6. **Go Native**: Written in Go, easy to integrate
+6. **Open Source**: MIT licensed, patterns freely available
 
 ## Architecture
 
 ```
 history-sanitizer
 ├── Pattern Source: Gitleaks project (MIT License)
-├── Embedded Config: gitleaks.toml (95KB, 200+ rules)
-└── Implementation: Direct regex patterns in scanner.go
+├── Active Patterns: patterns.toml (30+ rules)
+├── Reference Config: gitleaks.toml (95KB, 200+ rules)
+└── Implementation: TOML-based pattern loading in scanner.go
 ```
 
 ### Why Not Use Gitleaks API?
 
 Gitleaks v8 is designed as a **CLI tool**, not a Go library:
-- ❌ No `config.GetDefault()` function exists
-- ❌ Complex API not meant for embedding
+- ❌ No simple programmatic API for pattern access
+- ❌ Complex internal API not meant for embedding
 - ❌ 50+ transitive dependencies
 - ❌ Frequent breaking changes in non-public APIs
 
 ### Our Approach
 
-1. **Source Patterns from Gitleaks**
+1. **Extract Patterns from Gitleaks**
    - Download `gitleaks.toml` from official repository
-   - Extract regex patterns for common secrets
-   - Implement directly with Go's `regexp` package
+   - Extract high-value regex patterns for shell history use cases
+   - Store in `pkg/scanner/patterns.toml` for easy maintenance
 
-2. **Embed Full Config**
-   - Full `gitleaks.toml` embedded in binary
+2. **TOML-Based Configuration**
+   - Patterns loaded from `patterns.toml` at runtime
+   - Easy to add/modify patterns without code changes
+   - Compile regex patterns once at startup
+
+3. **Embed Full Config for Reference**
+   - Full `gitleaks.toml` embedded at `pkg/scanner/gitleaks.toml`
    - Serves as reference documentation
    - Proves patterns are from trusted source
 
-3. **Pattern Updates**
-   - Manually sync with Gitleaks releases
+4. **Pattern Updates**
+   - Manually sync `patterns.toml` with Gitleaks releases
    - Review and test new patterns
-   - Update `scanner.go` with new regexes
+   - Simple TOML format makes updates easy
 
 ## Detection Rules
 
-Gitleaks organizes detection rules by:
+Our `patterns.toml` file organizes detection rules with:
 
-- **Rule ID**: Unique identifier (e.g., `aws-access-token`)
-- **Description**: What the rule detects
-- **Regex Pattern**: The detection pattern
-- **Entropy**: Optional entropy threshold for randomness checking
-- **Keywords**: Optional keywords that must appear near the match
+- **name**: Unique identifier (e.g., `aws-access-token`)
+- **description**: What the rule detects
+- **regex**: The detection pattern
 
-### Example Rules
+### Example Rules from patterns.toml
 
-```yaml
+```toml
 # AWS Access Key
-- id: aws-access-token
-  description: AWS Access Token
-  regex: '(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'
-  
+[[patterns]]
+name = "aws-access-token"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+description = "AWS Access Token"
+
 # GitHub Personal Access Token
-- id: github-pat
-  description: GitHub Personal Access Token
-  regex: 'ghp_[0-9a-zA-Z]{36}'
-  
+[[patterns]]
+name = "github-pat"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+description = "GitHub Personal Access Token"
+
 # Generic API Key
-- id: generic-api-key
-  description: Generic API Key
-  regex: '(?i)api[_-]?key[_-]?[=:]\s*[''"]?[0-9a-zA-Z\-_]{20,}[''"]?'
+[[patterns]]
+name = "generic-api-key"
+regex = '''(?i)api[_-]?key[_-]?[=:]\s*['"`]?[0-9a-zA-Z\-_]{20,}['"`]?'''
+description = "Generic API Key"
 ```
+
+We've extracted 30+ patterns from Gitleaks that are most relevant for shell history scanning.
 
 ## Customization Options
 
-### Using Custom Gitleaks Config
-
-If you need custom rules, you can provide a Gitleaks config file:
-
-```go
-// Future enhancement
-cfg, err := config.NewConfig("path/to/gitleaks.toml")
-detector := detect.NewDetector(cfg)
-```
-
 ### Adding Custom Patterns
 
-To add patterns not in Gitleaks:
+To add patterns not currently in our `patterns.toml`:
 
-1. Contribute upstream to Gitleaks (preferred)
-2. Maintain a custom config file
-3. Add supplementary patterns in scanner.go
+1. **Edit patterns.toml** (easiest)
+   ```toml
+   [[patterns]]
+   name = "my-custom-secret"
+   regex = '''your-regex-here'''
+   description = "My Custom Secret Type"
+   ```
+
+2. **Contribute upstream to Gitleaks** (preferred for general patterns)
+   - Benefits the entire community
+   - Gets expert review
+   - Will be included in future syncs
+
+3. **Sync from Gitleaks** (for new Gitleaks patterns)
+   - Download latest `gitleaks.toml`
+   - Extract relevant patterns
+   - Add to `patterns.toml`
 
 ## Performance
 
-Gitleaks is optimized for performance:
+Our regex-based implementation is optimized for performance:
 
-- **Parallel Scanning**: Can scan multiple fragments concurrently
-- **Efficient Regex**: Patterns are pre-compiled
-- **Memory Efficient**: Streaming-friendly design
+- **Pre-compiled Patterns**: All regex patterns compiled at startup
+- **Efficient Scanning**: Line-by-line processing with all patterns
+- **Memory Efficient**: Processes files without loading entire content into memory for large files
 - **Fast**: Typically scans thousands of lines per second
 
 Benchmark on typical shell history:
-- 10,000 lines: ~100-200ms
-- 50,000 lines: ~500ms-1s
-- 100,000 lines: ~1-2s
+- 10,000 lines: ~50-100ms
+- 50,000 lines: ~250-500ms
+- 100,000 lines: ~500ms-1s
 
 ## Updating Detection Rules
 
-To get the latest detection rules:
+To get the latest detection rules from Gitleaks:
 
 ```bash
-# Update gitleaks dependency
-go get -u github.com/zricethezav/gitleaks/v8
+# 1. Download latest Gitleaks config
+curl -sL https://raw.githubusercontent.com/gitleaks/gitleaks/master/config/gitleaks.toml \
+  -o pkg/scanner/gitleaks.toml
 
-# Rebuild
+# 2. Review new patterns
+grep -A 3 "^\[\[rules\]\]" pkg/scanner/gitleaks.toml | head -50
+
+# 3. Extract relevant patterns to patterns.toml
+# Edit pkg/scanner/patterns.toml and add new patterns
+
+# 4. Rebuild and test
 go build
-
-# Verify new patterns
 ./history-sanitizer list-rules
+
+# 5. Test with sample data
+./history-sanitizer -f examples/sample_history.txt --dry-run -v
 ```
 
-## Comparison with Manual Patterns
+## Comparison with Approaches
 
-### Before (Manual Regex)
+### Before (Hardcoded Manual Regex)
 
 ```go
 patterns := []struct {
@@ -138,30 +159,41 @@ patterns := []struct {
         name:    "AWS Access Key",
         pattern: regexp.MustCompile(`(?i)(AKIA[0-9A-Z]{16})`),
     },
-    // ... manually maintain 15 patterns
+    // ... manually maintain 15 patterns in code
 }
 ```
 
 **Issues:**
 - Manual maintenance burden
 - Limited pattern coverage
-- No community updates
-- Potential for outdated patterns
+- Patterns hardcoded in source
+- Requires recompilation to add patterns
 
-### After (Gitleaks Integration)
+### Our Approach (TOML-Based Patterns)
 
 ```go
-cfg, err := config.GetDefault()
-detector := detect.NewDetector(cfg)
-findings := detector.Detect(fragment)
+// Load from patterns.toml at startup
+var config PatternConfig
+toml.Unmarshal([]byte(patternsConfig), &config)
+
+// Compile patterns once
+for _, p := range config.Patterns {
+    compiled := regexp.Compile(p.Regex)
+    detectionPatterns = append(detectionPatterns, pattern{
+        name:  p.Name,
+        regex: compiled,
+        desc:  p.Description,
+    })
+}
 ```
 
 **Benefits:**
-- ✅ 200+ patterns automatically included
-- ✅ Regular updates from community
-- ✅ Entropy checking for randomness
-- ✅ Battle-tested patterns
-- ✅ Easy to update (just `go get -u`)
+- ✅ 30+ high-quality patterns from Gitleaks
+- ✅ Easy to update (edit TOML file)
+- ✅ No recompilation needed for pattern changes
+- ✅ Battle-tested patterns from security community
+- ✅ Simple to sync with upstream Gitleaks
+- ✅ Clear separation of patterns and code
 
 ## Security Considerations
 

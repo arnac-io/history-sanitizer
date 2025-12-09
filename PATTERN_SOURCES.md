@@ -21,14 +21,23 @@ Rather than maintaining our own patterns, we leverage **Gitleaks** - the industr
 
 ## Pattern Attribution
 
-All detection patterns in `pkg/scanner/scanner.go` are sourced from:
+All detection patterns are sourced from:
 
 **Project:** Gitleaks  
 **Repository:** https://github.com/gitleaks/gitleaks  
 **License:** MIT License  
 **Config File:** https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml  
 
-### Embedded Config
+### Active Patterns
+
+Our active detection patterns (30+) are stored in:
+```
+pkg/scanner/patterns.toml
+```
+
+These are extracted from Gitleaks and optimized for shell history scanning.
+
+### Reference Config
 
 The full `gitleaks.toml` configuration file (95KB, 200+ rules) is embedded in:
 ```
@@ -36,9 +45,10 @@ pkg/scanner/gitleaks.toml
 ```
 
 This provides:
-1. **Reference documentation** for all available patterns
+1. **Reference documentation** for all available Gitleaks patterns
 2. **Proof of source** - patterns are from Gitleaks, not custom
 3. **Update capability** - can sync with upstream Gitleaks releases
+4. **Pattern discovery** - find new patterns to add to patterns.toml
 
 ## Why Not Use Gitleaks as a Library?
 
@@ -52,74 +62,98 @@ cfg, err := config.GetDefault()  // ❌ undefined
 
 ### Our Approach
 
-Instead of fighting the API, we:
+Instead of using the Gitleaks API, we:
 1. ✅ **Extract patterns** from Gitleaks' open-source config
-2. ✅ **Compile them as regex** for direct use
-3. ✅ **Embed the full config** for reference and updates
-4. ✅ **Credit the source** in code and documentation
+2. ✅ **Store in TOML** at `pkg/scanner/patterns.toml`
+3. ✅ **Load and compile at runtime** using Go's regexp package
+4. ✅ **Embed the full config** for reference at `pkg/scanner/gitleaks.toml`
+5. ✅ **Credit the source** in code and documentation
 
 This gives us:
 - Same detection quality as Gitleaks
 - Simpler, more maintainable code
 - No complex dependency tree (50+ transitive deps)
-- Easy to understand and modify
-- Still using 3rd party (Gitleaks) patterns, just directly
+- Easy to add/modify patterns without code changes
+- Still using 3rd party (Gitleaks) patterns, just more directly
+- Clear separation between patterns (TOML) and code (Go)
 
 ## Pattern List
 
-Currently implemented patterns from Gitleaks:
+Currently implemented patterns in `pkg/scanner/patterns.toml` (extracted from Gitleaks):
 
-### AWS
-- `aws-access-token` - AWS Access Keys (AKIA, ASIA, etc.)
+### AWS (3 patterns)
+- `aws-access-token` - AWS Access Keys (AKIA, ASIA, AGPA, etc.)
 - `aws-secret-key` - AWS Secret Access Keys
+- `aws-session-token` - AWS Session Tokens
 
-### GitHub
+### GitHub (5 patterns)
 - `github-pat` - GitHub Personal Access Tokens (ghp_)
 - `github-oauth` - GitHub OAuth Tokens (gho_)
 - `github-app-token` - GitHub App Tokens (ghu_, ghs_)
 - `github-refresh-token` - GitHub Refresh Tokens (ghr_)
+- `github-fine-grained-pat` - GitHub Fine-Grained PATs
 
-### Slack
+### Slack (2 patterns)
 - `slack-token` - Slack API Tokens (xoxb-, xoxp-, etc.)
 - `slack-webhook` - Slack Webhook URLs
 
-### Generic
+### Generic (2 patterns)
 - `generic-api-key` - Generic API key patterns
 - `generic-secret` - Generic passwords/secrets
-- `private-key` - Private keys (RSA, EC, DSA, PGP)
+
+### Cryptographic (2 patterns)
+- `private-key` - Private keys (RSA, EC, DSA, PGP, SSH)
 - `jwt` - JSON Web Tokens
 
-### Database
+### Database (2 patterns)
 - `connection-string` - MongoDB, MySQL, PostgreSQL connection strings
+- `mongodb-password` - MongoDB passwords in connection strings
 
-### Other Services
+### Cloud & Services (7 patterns)
 - `google-api-key` - Google API Keys
 - `stripe-key` - Stripe API Keys
-- `heroku-api-key` - Heroku API Keys
+- `heroku-api-key` - Heroku API Keys / UUID patterns
 - `twilio-api-key` - Twilio API Keys
 - `mailchimp-api-key` - MailChimp API Keys
 - `sendgrid-api-key` - SendGrid API Keys
 - `square-access-token` - Square Access Tokens
 
-**Total:** 20+ patterns (extracted from Gitleaks' 200+ rule set)
+### Other (7 patterns)
+- `cli-secret-value` - CLI secret value flags
+- `datadog-api-key` - Datadog/Generic 32-char hex keys
+- `pagerduty-token` - PagerDuty tokens
+- `proxy-password-url` - Proxy URLs with passwords
+- `1password-service-token` - 1Password service tokens
+- `env-var-jwt` - Environment variables with JWTs
+- `env-var-secret` - Environment variables with secrets
+
+**Total:** 30+ patterns (extracted from Gitleaks' 200+ rule set)
 
 ## Updating Patterns
 
 To sync with latest Gitleaks patterns:
 
 ```bash
-# 1. Download latest gitleaks.toml
+# 1. Download latest gitleaks.toml (reference)
 curl -sL https://raw.githubusercontent.com/gitleaks/gitleaks/master/config/gitleaks.toml \
   -o pkg/scanner/gitleaks.toml
 
 # 2. Review new rules in the file
-grep -A 5 "^\[\[rules\]\]" pkg/scanner/gitleaks.toml
+grep -A 5 "^\[\[rules\]\]" pkg/scanner/gitleaks.toml | less
 
-# 3. Extract relevant patterns to pkg/scanner/scanner.go
-# Copy regex patterns and add to detectionPatterns array
+# 3. Extract relevant patterns to patterns.toml
+# Edit pkg/scanner/patterns.toml and add new patterns in TOML format:
+# [[patterns]]
+# name = "pattern-name"
+# regex = '''pattern-regex'''
+# description = "Pattern description"
 
 # 4. Test the new patterns
 go test ./pkg/scanner/...
+
+# 5. Verify patterns are loaded
+go build
+./history-sanitizer list-rules
 ```
 
 ## License Compliance
@@ -140,15 +174,22 @@ We comply with the MIT license by:
 
 If you discover a missing secret type:
 
-1. **Contribute upstream to Gitleaks** (preferred)
-   - Benefits the entire community
-   - Gets expert review
-   - Automatically included in future syncs
+1. **Add to patterns.toml** (immediate)
+   - Edit `pkg/scanner/patterns.toml`
+   - Add pattern in TOML format
+   - Test with `go test ./pkg/scanner/...`
+   - Submit PR to this project
 
-2. **Add to our project** (temporary)
-   - Create pattern following Gitleaks format
-   - Open PR to add to Gitleaks
-   - We'll sync when merged upstream
+2. **Contribute upstream to Gitleaks** (preferred for general patterns)
+   - Benefits the entire security community
+   - Gets expert review from Gitleaks maintainers
+   - Will be included in future syncs
+   - Helps improve the industry standard
+
+3. **Workflow for new patterns**
+   - Add to our `patterns.toml` first (quick)
+   - Submit to Gitleaks (community benefit)
+   - Sync back when merged upstream
 
 ## References
 

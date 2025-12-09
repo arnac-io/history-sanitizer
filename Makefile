@@ -70,6 +70,13 @@ build-mac: ## Build for macOS
 
 build-all: build-linux build-windows build-mac ## Build for all platforms
 
+release: ## Create a new release
+	@which goreleaser > /dev/null || (echo "Installing goreleaser..." && brew install goreleaser)
+	goreleaser release --clean
+
+release-snapshot: ## Create a snapshot release (for testing)
+	goreleaser release --snapshot --clean --skip=publish
+
 lint: ## Run golangci-lint
 	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
 	golangci-lint run ./...

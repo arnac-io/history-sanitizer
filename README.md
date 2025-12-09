@@ -27,18 +27,15 @@ Shell history files are incredibly useful for daily work, but they can inadverte
 
 ## Detection Patterns
 
-The tool uses detection patterns **sourced from Gitleaks** - a well-maintained, community-driven project with patterns for:
+The tool uses detection patterns **sourced from Gitleaks** - a well-maintained, community-driven project. We've extracted and implemented 30+ high-value patterns covering:
 
 **Cloud Providers & Services:**
-- AWS (Access Keys, Secret Keys, Session Tokens, MWS Keys)
-- Google Cloud (API Keys, Service Account credentials)
-- Azure (Storage Keys, Client Secrets, Connection Strings)
-- DigitalOcean, Heroku, Stripe, Twilio tokens
+- AWS (Access Keys, Secret Keys, Session Tokens)
+- Google Cloud (API Keys)
+- Stripe, Heroku, Square API keys
 
-**Version Control & CI/CD:**
-- GitHub (Personal Access Tokens, App Tokens, OAuth tokens)
-- GitLab (Personal/Project/Runner tokens)
-- Bitbucket, CircleCI, Travis CI tokens
+**Version Control:**
+- GitHub (Personal Access Tokens, App Tokens, OAuth tokens, Fine-Grained PATs)
 
 **Credentials & Secrets:**
 - Private Keys (RSA, EC, DSA, PGP, SSH)
@@ -48,24 +45,38 @@ The tool uses detection patterns **sourced from Gitleaks** - a well-maintained, 
 
 **Communication & Monitoring:**
 - Slack (Bot/App/User/Webhook tokens)
-- Discord webhooks
-- SendGrid, Mailgun, Telegram API keys
-- Datadog, New Relic tokens
+- SendGrid, MailChimp, Twilio API keys
+- Datadog, PagerDuty tokens
 
-...and **200+ more patterns** in the full Gitleaks config (embedded for reference)!
+**Other:**
+- 1Password service tokens
+- Environment variables with secrets
+- Proxy URLs with passwords
 
-### Why Not Use Gitleaks Directly?
+The full Gitleaks config (200+ rules) is embedded for reference at `pkg/scanner/gitleaks.toml`.
 
-We use Gitleaks' **patterns** rather than their Go API because:
+### How We Use Gitleaks Patterns
+
+We extract and implement Gitleaks' **regex patterns** directly because:
 - ✅ **Gitleaks patterns are open source and well-maintained** by a large community
 - ✅ Gitleaks CLI is designed as a standalone tool, not a Go library
-- ✅ Their API lacks simple programmatic access (`config.GetDefault()` doesn't exist)
-- ✅ Direct pattern usage avoids 50+ transitive dependencies
-- ✅ We get the same detection quality with simpler, more maintainable code
+- ✅ Direct pattern implementation is simpler and more maintainable
+- ✅ Avoids 50+ transitive dependencies from the full Gitleaks package
+- ✅ We get the same detection quality with full control over the implementation
 
-The full `gitleaks.toml` (95KB, 200+ rules) is embedded in our codebase and updated from the official Gitleaks repository.
+Our implementation:
+- Patterns defined in `pkg/scanner/patterns.toml` (extracted from Gitleaks)
+- Full `gitleaks.toml` (95KB, 200+ rules) embedded for reference
+- Easy to update by syncing with the official Gitleaks repository
 
 ## Installation
+
+### Using Homebrew (Recommended)
+
+```bash
+brew tap arnac-io/tap
+brew install history-sanitizer
+```
 
 ### From Source
 
@@ -152,6 +163,7 @@ mv ~/.zsh_history.clean ~/.zsh_history
 | `--output` | `-o` | Output file path | `<input>.sanitized` |
 | `--dry-run` | `-d` | Show changes without modifying files | `false` |
 | `--verbose` | `-v` | Show detailed information | `false` |
+| `--in-place` | `-i` | Replace original file (creates .backup) | `false` |
 | `--help` | `-h` | Show help message | - |
 
 ### Additional Commands
@@ -207,16 +219,21 @@ To replace your history file, run:
 
 ```
 history-sanitizer/
-├── main.go                 # Entry point
+├── main.go                      # Entry point
 ├── cmd/
-│   └── root.go            # CLI command definitions
+│   ├── root.go                  # Main scan/sanitize command
+│   └── list.go                  # List detection rules command
 ├── pkg/
 │   ├── scanner/
-│   │   └── scanner.go     # Pattern detection logic
+│   │   ├── scanner.go           # Pattern detection logic
+│   │   ├── patterns.toml        # Detection patterns (from Gitleaks)
+│   │   └── gitleaks.toml        # Full Gitleaks config (reference)
 │   └── sanitizer/
-│       └── sanitizer.go   # Obfuscation logic
-├── go.mod                  # Go module definition
-└── README.md              # This file
+│       └── sanitizer.go         # Obfuscation logic
+├── examples/
+│   └── sample_history.txt       # Sample file for testing
+├── go.mod                       # Go module definition
+└── README.md                    # This file
 ```
 
 ### Running Tests
@@ -275,7 +292,9 @@ This project is licensed under the MIT License.
 ## Documentation
 
 - 📘 [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
-- 🔍 [Pattern Sources](PATTERN_SOURCES.md) - How we use Gitleaks patterns (3rd party)
+- 📋 [Project Summary](PROJECT_SUMMARY.md) - Project overview and architecture
+- 🔍 [Pattern Sources](PATTERN_SOURCES.md) - How we use Gitleaks patterns
+- 🔧 [Gitleaks Integration](GITLEAKS_INTEGRATION.md) - Technical integration details
 - 📁 [Examples](examples/) - Sample history files for testing
 
 ## Support

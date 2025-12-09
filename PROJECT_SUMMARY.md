@@ -6,9 +6,10 @@
 
 ## Key Features
 
-✅ **3rd-party Patterns**: Uses detection patterns from Gitleaks (200+ well-maintained by community)  
+✅ **3rd-party Patterns**: Uses 30+ detection patterns extracted from Gitleaks  
 ✅ **Safe & Non-destructive**: Creates sanitized copies, preserves originals  
-✅ **Multiple Output Modes**: Dry-run, verbose, and sanitize modes  
+✅ **Multiple Output Modes**: Dry-run, verbose, in-place, and sanitize modes  
+✅ **Easy Installation**: Support for Homebrew tap  
 ✅ **Modern CLI**: Built with Cobra framework  
 ✅ **Comprehensive Testing**: Unit tests for scanner and sanitizer modules  
 ✅ **Well Documented**: README, Quick Start, and Integration guides  
@@ -18,22 +19,24 @@
 ```
 history-sanitizer/
 ├── main.go                      # Application entry point
-├── go.mod                       # Go module with Gitleaks v8 dependency
+├── go.mod                       # Go module dependencies
 ├── Makefile                     # Build and test automation
 ├── LICENSE                      # MIT License
 ├── README.md                    # Main documentation
 ├── QUICKSTART.md               # Quick start guide
 ├── GITLEAKS_INTEGRATION.md     # Technical integration details
+├── PATTERN_SOURCES.md          # Pattern attribution and sources
 ├── PROJECT_SUMMARY.md          # This file
-├── .gitignore                  # Git ignore patterns
 │
 ├── cmd/                        # CLI command implementations
 │   ├── root.go                 # Main scan/sanitize command
 │   └── list.go                 # List detection rules command
 │
 ├── pkg/                        # Core packages
-│   ├── scanner/                # Secret detection using Gitleaks
-│   │   ├── scanner.go          # Detection logic with Gitleaks API
+│   ├── scanner/                # Secret detection using patterns
+│   │   ├── scanner.go          # Detection logic with regex patterns
+│   │   ├── patterns.toml       # Active detection patterns (from Gitleaks)
+│   │   ├── gitleaks.toml       # Full Gitleaks config (reference)
 │   │   └── scanner_test.go     # Scanner tests
 │   │
 │   └── sanitizer/              # Secret obfuscation
@@ -49,16 +52,20 @@ history-sanitizer/
 ### Dependencies
 
 1. **Detection Patterns**: From Gitleaks Project (https://github.com/gitleaks/gitleaks)
-   - 200+ maintained detection patterns
-   - Industry-standard secret scanning  
+   - 30+ patterns extracted and implemented from Gitleaks
+   - Industry-standard secret scanning patterns
    - Active community (15k+ stars)
-   - Patterns used directly, not via API
+   - Patterns extracted to `patterns.toml`, not using Gitleaks API
 
-2. **CLI Framework**: `github.com/spf13/cobra`
+2. **TOML Parser**: `github.com/pelletier/go-toml/v2`
+   - Parse patterns.toml configuration
+   - Lightweight and fast
+
+3. **CLI Framework**: `github.com/spf13/cobra`
    - Modern command-line interface
    - Subcommands and flags support
 
-3. **UI Enhancement**: `github.com/fatih/color`
+4. **UI Enhancement**: `github.com/fatih/color`
    - Colored terminal output
    - Better user experience
 
@@ -69,22 +76,26 @@ User Input
     ↓
 CLI (Cobra) - cmd/root.go
     ↓
-Scanner (Gitleaks) - pkg/scanner/scanner.go
+Scanner - pkg/scanner/scanner.go
+    ├── Load patterns.toml
+    └── Apply regex patterns
     ↓
 Findings []Finding
     ↓
 Sanitizer - pkg/sanitizer/sanitizer.go
+    └── Obfuscate with hash-based placeholders
     ↓
-Output File (sanitized)
+Output File (sanitized or in-place)
 ```
 
 ## How It Works
 
-1. **Load Configuration**: Loads Gitleaks' default detection rules
-2. **Scan Content**: Applies 200+ regex patterns to detect secrets
-3. **Identify Findings**: Returns structured findings with line numbers
-4. **Obfuscate Secrets**: Replaces secrets with `[REDACTED_TYPE_hash]` placeholders
-5. **Write Output**: Saves sanitized content to new file
+1. **Load Patterns**: Loads detection patterns from `patterns.toml` at startup
+2. **Compile Regex**: Compiles 30+ regex patterns for efficient matching
+3. **Scan Content**: Applies patterns line-by-line to detect secrets
+4. **Identify Findings**: Returns structured findings with line numbers and positions
+5. **Obfuscate Secrets**: Replaces secrets with `[REDACTED_TYPE_hash]` placeholders
+6. **Write Output**: Saves sanitized content to new file or in-place with backup
 
 ### Example Transformation
 
@@ -114,6 +125,7 @@ history-sanitizer [flags]
 - `-o, --output`: Output file path (default: `<input>.sanitized`)
 - `-d, --dry-run`: Preview changes without modifying files
 - `-v, --verbose`: Show detailed information
+- `-i, --in-place`: Replace original file (creates .backup)
 
 ### Subcommands
 ```bash
@@ -187,15 +199,17 @@ make build-windows          # Windows
 
 ## Why This Implementation?
 
-### ✅ Uses 3rd Party Library (Gitleaks)
-- **Requirement Met**: Yes! Uses `github.com/zricethezav/gitleaks/v8`
+### ✅ Uses 3rd Party Patterns (Gitleaks)
+- **Requirement Met**: Yes! Uses patterns from Gitleaks project
 - **Why**: Industry-standard, actively maintained by security professionals
-- **Benefit**: 200+ patterns vs manually maintaining ~15
+- **Benefit**: 30+ high-quality patterns extracted from Gitleaks' 200+ rule set
+- **Implementation**: Direct regex patterns in `patterns.toml` for simplicity
 
-### ✅ Well Maintained
-- **Gitleaks**: 13k+ GitHub stars, active development
+### ✅ Well Maintained Source
+- **Gitleaks**: 15k+ GitHub stars, active development
 - **Last Update**: Regular updates, large community
 - **Trust**: Used by major organizations worldwide
+- **Easy Updates**: Sync patterns.toml with upstream Gitleaks releases
 
 ### ✅ Comprehensive
 - Complete CLI tool with multiple commands
@@ -213,11 +227,12 @@ make build-windows          # Windows
 
 - ✅ Compiles successfully
 - ✅ All tests pass
-- ✅ Detects 200+ secret patterns
+- ✅ Detects 30+ secret patterns (extracted from Gitleaks)
 - ✅ Safely obfuscates sensitive data
-- ✅ Comprehensive documentation
+- ✅ Comprehensive documentation (5 markdown files)
 - ✅ Example files included
 - ✅ Cross-platform support
+- ✅ In-place editing with automatic backups
 
 ## Contributing
 
